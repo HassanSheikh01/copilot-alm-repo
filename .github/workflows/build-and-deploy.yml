@@ -128,19 +128,6 @@ jobs:
                   solution-file: ${{ runner.temp }}/${{ matrix.solution }}_unmanaged.zip
                   solution-type: "Unmanaged"
 
-            - name: Pack solution (Managed)
-              shell: pwsh
-              run: |
-                  $pacExePath = $env:POWERPLATFORMTOOLS_PACPATH
-                  $pacDir = Split-Path $pacExePath -Parent
-                  $env:PATH = "$pacDir;$env:PATH"
-
-                  pac solution pack `
-                      --zipFile "${{ runner.temp }}/${{ matrix.solution }}_managed.zip" `
-                      --folder "solutions/${{ matrix.solution }}" `
-                      --packageType Managed `
-                      --allowDelete
-
             - name: Rename unmanaged zip
               shell: pwsh
               run: |
@@ -214,9 +201,8 @@ jobs:
             - name: Import solution to Test
               shell: pwsh
               run: |
-                  $suffix = if ("${{ inputs.deploy_as_managed }}" -ne "false") { "_managed" } else { "_unmanaged" }
                   $importArgs = @(
-                    "--path", "${{ runner.temp }}/artifacts/${{ matrix.solution }}$suffix.zip",
+                    "--path", "${{ runner.temp }}/artifacts/${{ matrix.solution }}_unmanaged.zip",
                     "--force-overwrite",
                     "--publish-changes",
                     "--async",
