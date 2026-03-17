@@ -1,0 +1,11 @@
+<botcomponent schemaname="copilots_header_11ee3.topic.Account_xN2moGRptlIpkADrJARyk">
+  <componenttype>16</componenttype>
+  <description>This knowledge source answers questions found in the following Dataverse items: Account</description>
+  <iscustomizable>0</iscustomizable>
+  <name>Account</name>
+  <parentbotid>
+    <schemaname>copilots_header_11ee3</schemaname>
+  </parentbotid>
+  <statecode>0</statecode>
+  <statuscode>1</statuscode>
+</botcomponent>

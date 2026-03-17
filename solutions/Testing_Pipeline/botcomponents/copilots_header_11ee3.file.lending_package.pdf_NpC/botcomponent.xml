@@ -1,0 +1,12 @@
+<botcomponent schemaname="copilots_header_11ee3.file.lending_package.pdf_NpC">
+  <componenttype>14</componenttype>
+  <description>This knowledge source searches information contained in lending_package.pdf</description>
+  <filedata mimetype="application/pdf">lending_package.pdf</filedata>
+  <iscustomizable>0</iscustomizable>
+  <name>lending_package.pdf</name>
+  <parentbotid>
+    <schemaname>copilots_header_11ee3</schemaname>
+  </parentbotid>
+  <statecode>0</statecode>
+  <statuscode>1</statuscode>
+</botcomponent>
