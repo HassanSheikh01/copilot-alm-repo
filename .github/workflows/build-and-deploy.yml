@@ -128,18 +128,12 @@ jobs:
                   solution-file: ${{ runner.temp }}/${{ matrix.solution }}_unmanaged.zip
                   solution-type: "Unmanaged"
 
-            - name: Rename unmanaged zip
-              shell: pwsh
-              run: |
-                  Rename-Item "${{ runner.temp }}/${{ matrix.solution }}.zip" "${{ runner.temp }}/${{ matrix.solution }}_unmanaged.zip"
-
             - name: Upload solution artifacts
               uses: actions/upload-artifact@v4
               with:
                   name: ${{ matrix.solution }}-${{ steps.version.outputs.version }}
                   path: |
                       ${{ runner.temp }}/${{ matrix.solution }}_unmanaged.zip
-                      ${{ runner.temp }}/${{ matrix.solution }}_managed.zip
                   retention-days: 30
 
     # Deploy to Test environment
