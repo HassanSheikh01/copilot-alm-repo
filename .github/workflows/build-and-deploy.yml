@@ -125,13 +125,13 @@ jobs:
               uses: microsoft/powerplatform-actions/pack-solution@v1
               with:
                   solution-folder: solutions/${{ matrix.solution }}
-                  solution-file: ${{ runner.temp }}/${{ matrix.solution }}_managed.zip
+                  solution-file: ${{ runner.temp }}/${{ matrix.solution }}.zip
                   solution-type: "Both"
             - name: Rename unmanaged zip
               shell: pwsh
               run: |
                   Rename-Item "${{ runner.temp }}/${{ matrix.solution }}.zip" "${{ runner.temp }}/${{ matrix.solution }}_unmanaged.zip"
-                  
+
             - name: Upload solution artifacts
               uses: actions/upload-artifact@v4
               with:
