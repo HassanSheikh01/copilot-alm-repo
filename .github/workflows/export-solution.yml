@@ -80,10 +80,10 @@ jobs:
             - name: Export solution (unmanaged)
               shell: pwsh
               run: |
-                  pac solution export ``
-                    --name "${{ inputs.solution_name }}" ``
-                    --path "${{ runner.temp }}/${{ inputs.solution_name }}.zip" ``
-                    --managed false ``
+                  pac solution export `
+                    --name "${{ inputs.solution_name }}" `
+                    --path "${{ runner.temp }}/${{ inputs.solution_name }}.zip" `
+                    --managed false `
                     --overwrite
 
             - name: Unpack solution
@@ -124,8 +124,8 @@ jobs:
 
                   # Only create if doesn't exist
                   if (-not (Test-Path $settingsFile)) {
-                      pac solution create-settings ``
-                          --solution-zip "${{ runner.temp }}/${{ inputs.solution_name }}.zip" ``
+                      pac solution create-settings `
+                          --solution-zip "${{ runner.temp }}/${{ inputs.solution_name }}.zip" `
                           --settings-file "$settingsFile"
                       Write-Host "Created settings template: $settingsFile"
                   } else {
