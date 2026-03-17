@@ -121,19 +121,12 @@ jobs:
                       exit 1
                   }
 
-            - name: Pack solution (unmanaged)
-              uses: microsoft/powerplatform-actions/pack-solution@v1
-              with:
-                  solution-folder: solutions/${{ matrix.solution }}
-                  solution-file: ${{ runner.temp }}/${{ matrix.solution }}_unmanaged.zip
-                  solution-type: "Unmanaged"
-
-            - name: Pack solution (managed)
+            - name: Pack solution (Both)
               uses: microsoft/powerplatform-actions/pack-solution@v1
               with:
                   solution-folder: solutions/${{ matrix.solution }}
                   solution-file: ${{ runner.temp }}/${{ matrix.solution }}_managed.zip
-                  solution-type: "Managed"
+                  solution-type: "Both"
 
             - name: Upload solution artifacts
               uses: actions/upload-artifact@v4
