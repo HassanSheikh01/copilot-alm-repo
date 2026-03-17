@@ -12,7 +12,7 @@ on:
                 required: true
                 type: string
             environment_url:
-                description: "Source environment URL"
+                description: "Source environment URL (with or without https://)"
                 required: true
                 type: string
                 default: "https://yourorg-dev.crm.dynamics.com"
@@ -42,7 +42,7 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
               with:
                   fetch-depth: 0
 
@@ -54,45 +54,72 @@ jobs:
                   tenant-id: ${{ vars.AZURE_TENANT_ID }}
                   allow-no-subscriptions: true
 
+            # FIX 1: Added id: install so the output can be referenced later
             - name: Install Power Platform CLI
-              id: install  
+              id: install
               uses: microsoft/powerplatform-actions/actions-install@v1
 
-            # Explicitly add pac CLI to PATH
+            # FIX 2: Robust PATH setup with fallback search
             - name: Add PAC CLI to PATH
               shell: pwsh
               run: |
-                $pacPath = "${{ steps.install.outputs.pac-path }}"
-                if ($pacPath) {
-                  echo "$pacPath" >> $env:GITHUB_PATH
-                  Write-Host "Added to PATH: $pacPath"
-                } else {
-                  # Fallback: find pac.exe anywhere in common install locations
-                  $found = Get-ChildItem -Path "C:\Users\runneradmin\.dotnet\tools", "$env:LOCALAPPDATA\Microsoft\dotnet\tools" -Filter "pac.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-                  if ($found) {
-                    echo $found.DirectoryName >> $env:GITHUB_PATH
-                    Write-Host "Found pac at: $($found.FullName)"
+                  $pacPath = "${{ steps.install.outputs.pac-path }}"
+                  if ($pacPath -and (Test-Path $pacPath)) {
+                      Write-Host "Adding PAC path from action output: $pacPath"
+                      echo "$pacPath" >> $env:GITHUB_PATH
                   } else {
-                    Write-Error "pac CLI not found"
-                    exit 1
+                      Write-Host "PAC path from action output not found, searching common locations..."
+                      $searchPaths = @(
+                          "$env:USERPROFILE\.dotnet\tools",
+                          "$env:LOCALAPPDATA\Microsoft\dotnet\tools",
+                          "C:\Users\runneradmin\.dotnet\tools",
+                          "$env:RUNNER_TOOL_CACHE"
+                      )
+                      $found = $null
+                      foreach ($searchPath in $searchPaths) {
+                          if (Test-Path $searchPath) {
+                              $found = Get-ChildItem -Path $searchPath -Filter "pac.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+                              if ($found) { break }
+                          }
+                      }
+                      if ($found) {
+                          Write-Host "Found pac.exe at: $($found.FullName)"
+                          echo "$($found.DirectoryName)" >> $env:GITHUB_PATH
+                      } else {
+                          Write-Error "pac CLI not found anywhere. Cannot continue."
+                          exit 1
+                      }
                   }
-                }
 
+            - name: Verify PAC CLI is available
+              shell: pwsh
+              run: |
+                  $pacVersion = pac --version
+                  Write-Host "PAC CLI version: $pacVersion"
+                  if ($LASTEXITCODE -ne 0) {
+                      Write-Error "pac CLI not accessible after PATH update"
+                      exit 1
+                  }
+
+            # FIX 3: Normalize URL to ensure https:// prefix is always present
             - name: Normalize environment URL
               shell: pwsh
               run: |
-                $url = "${{ inputs.environment_url }}"
-                if (-not $url.StartsWith("https://")) {
-                  $url = "https://$url"
-                }
-                echo "ENV_URL=$url" >> $env:GITHUB_ENV
+                  $url = "${{ inputs.environment_url }}".Trim()
+                  if (-not $url.StartsWith("https://") -and -not $url.StartsWith("http://")) {
+                      $url = "https://$url"
+                  }
+                  Write-Host "Normalized environment URL: $url"
+                  echo "ENV_URL=$url" >> $env:GITHUB_ENV
 
             - name: Create PAC auth profile
               shell: pwsh
               run: |
-                pac auth create --environment "${{ env.ENV_URL }}" --name "export-profile" --managedIdentity
+                  pac auth create `
+                      --environment "${{ env.ENV_URL }}" `
+                      --name "export-profile" `
+                      --managedIdentity
 
-                
             - name: Verify connection
               shell: pwsh
               run: |
@@ -129,15 +156,16 @@ jobs:
                       [xml]$xml = Get-Content $solutionXml
                       $version = $xml.ImportExportXml.SolutionManifest.Version
                       $publisher = $xml.ImportExportXml.SolutionManifest.Publisher.UniqueName
-                      
+
                       Write-Host "Solution Version: $version"
                       Write-Host "Publisher: $publisher"
-                      
+
                       echo "SOLUTION_VERSION=$version" >> $env:GITHUB_ENV
                       echo "SOLUTION_PUBLISHER=$publisher" >> $env:GITHUB_ENV
                   } else {
-                      Write-Warning "Solution.xml not found"
+                      Write-Warning "Solution.xml not found at $solutionXml"
                       echo "SOLUTION_VERSION=Unknown" >> $env:GITHUB_ENV
+                      echo "SOLUTION_PUBLISHER=Unknown" >> $env:GITHUB_ENV
                   }
 
             - name: Generate deployment settings template
@@ -155,7 +183,7 @@ jobs:
                           --settings-file "$settingsFile"
                       Write-Host "Created settings template: $settingsFile"
                   } else {
-                      Write-Host "Settings file already exists: $settingsFile"
+                      Write-Host "Settings file already exists, skipping: $settingsFile"
                   }
 
             - name: Check for changes
@@ -169,7 +197,7 @@ jobs:
                       $changes | ForEach-Object { Write-Host "  - $_" }
                       echo "has_changes=true" >> $env:GITHUB_OUTPUT
                   } else {
-                      Write-Host "No changes detected"
+                      Write-Host "No changes detected - solution is already up to date"
                       echo "has_changes=false" >> $env:GITHUB_OUTPUT
                   }
 
@@ -184,12 +212,14 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
-                  # Check if branch exists
+                  # Check if remote branch already exists
                   $branchExists = git ls-remote --heads origin $branchName
                   if ($branchExists) {
+                      Write-Host "Branch $branchName already exists, checking out..."
                       git checkout $branchName
                       git pull origin $branchName
                   } else {
+                      Write-Host "Creating new branch: $branchName"
                       git checkout -b $branchName
                   }
 
@@ -211,6 +241,7 @@ jobs:
                       const branchName = process.env.BRANCH_NAME;
                       const solutionVersion = process.env.SOLUTION_VER;
 
+                      // Check if a PR already exists for this branch
                       const { data: prs } = await github.rest.pulls.list({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
@@ -223,11 +254,38 @@ jobs:
                           owner: context.repo.owner,
                           repo: context.repo.repo,
                           title: `🤖 Export: ${{ inputs.solution_name }} v${solutionVersion}`,
-                          body: `## Solution Export\n\n**Solution:** ${{ inputs.solution_name }}\n**Version:** ${solutionVersion}\n**Source:** ${{ inputs.environment_url }}\n\n### Changes\nThis PR contains the latest export from the development environment.\n\n### Checklist\n- [ ] Review solution components\n- [ ] Verify no unintended changes\n- [ ] Update deployment settings if needed`,
+                          body: [
+                            '## Solution Export',
+                            '',
+                            `**Solution:** ${{ inputs.solution_name }}`,
+                            `**Version:** ${solutionVersion}`,
+                            `**Source:** ${{ inputs.environment_url }}`,
+                            '',
+                            '### Changes',
+                            'This PR contains the latest export from the development environment.',
+                            '',
+                            '### Checklist',
+                            '- [ ] Review solution components',
+                            '- [ ] Verify no unintended changes',
+                            '- [ ] Update deployment settings if needed'
+                          ].join('\n'),
                           head: branchName,
                           base: '${{ inputs.target_branch }}'
                         });
-                        console.log(`Created PR #${pr.data.number}`);
+                        console.log(`✅ Created PR #${pr.data.number}: ${pr.data.html_url}`);
                       } else {
-                        console.log(`PR already exists: #${prs[0].number}`);
+                        console.log(`ℹ️ PR already exists: #${prs[0].number} - ${prs[0].html_url}`);
                       }
+
+            - name: Summary
+              if: always()
+              shell: pwsh
+              run: |
+                  Write-Host "========================================="
+                  Write-Host "Export Summary"
+                  Write-Host "========================================="
+                  Write-Host "Solution   : ${{ inputs.solution_name }}"
+                  Write-Host "Version    : ${{ env.SOLUTION_VERSION }}"
+                  Write-Host "Publisher  : ${{ env.SOLUTION_PUBLISHER }}"
+                  Write-Host "Source URL : ${{ env.ENV_URL }}"
+                  Write-Host "========================================="
