@@ -24,7 +24,7 @@ on:
                 options:
                     - Test Environment
                     - prod
-                default: "test"
+                default: "Test Environment"
             deploy_as_managed:
                 description: "Deploy as managed solution"
                 required: false
@@ -139,9 +139,9 @@ jobs:
     # Deploy to Test environment
     deploy-test:
         needs: [detect-changes, build]
-        if: github.event_name == 'push' || inputs.environment == 'test'
+        if: github.event_name == 'push' || inputs.environment == 'Test Environment'
         runs-on: windows-latest
-        environment: test
+        environment: Test Environment
 
         permissions:
             id-token: write # Required for federated credentials (OIDC)
