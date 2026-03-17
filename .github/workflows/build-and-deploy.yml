@@ -186,7 +186,7 @@ jobs:
                       Write-Error "POWERPLATFORMTOOLS_PACPATH not set or file not found: '$pacExePath'"
                       exit 1
                   }
-                  
+
             - name: Create PAC auth profile
               shell: pwsh
               run: |
@@ -215,7 +215,6 @@ jobs:
                     "--publish-changes",
                     "--async",
                     "--max-async-wait-time", "60",
-                    "--stage-and-upgrade"
                   )
 
                   if ("${{ steps.settings.outputs.has_settings }}" -eq "true") {
