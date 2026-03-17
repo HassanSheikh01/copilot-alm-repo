@@ -33,7 +33,7 @@ env:
 jobs:
     export-solution:
         runs-on: windows-latest
-        environment: Dev # Uses federated credential for 'dev' environment
+        environment: dev # Uses federated credential for 'dev' environment
 
         permissions:
             id-token: write # Required for federated credentials (OIDC)
@@ -42,18 +42,10 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
               with:
                   fetch-depth: 0
 
-            - name: Install Power Platform CLI
-              uses: microsoft/powerplatform-actions/actions-install@v1
-
-            # Ensure PAC is available in PATH
-            - name: Add PAC CLI to PATH
-              run: |
-                echo "$(pwd)/.local/bin" >> $GITHUB_PATH
-              
             # Authenticate using Workload Identity Federation (recommended)
             - name: Azure Login (Federated Credentials)
               uses: azure/login@v2
@@ -62,10 +54,8 @@ jobs:
                   tenant-id: ${{ vars.AZURE_TENANT_ID }}
                   allow-no-subscriptions: true
 
-            - name: Verify PAC CLI Installation
-              shell: pwsh
-              run: |
-                  pac --version  # Verifies that pac is installed
+            - name: Install Power Platform CLI
+              uses: microsoft/powerplatform-actions/actions-install@v1
 
             - name: Create PAC auth profile
               shell: pwsh
