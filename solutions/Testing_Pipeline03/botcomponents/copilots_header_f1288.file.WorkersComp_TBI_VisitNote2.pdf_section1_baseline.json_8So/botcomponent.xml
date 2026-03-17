@@ -1,0 +1,12 @@
+<botcomponent schemaname="copilots_header_f1288.file.WorkersComp_TBI_VisitNote2.pdf_section1_baseline.json_8So">
+  <componenttype>14</componenttype>
+  <description>This knowledge source searches information contained in WorkersComp_TBI_VisitNote2.pdf_section1_baseline.json</description>
+  <filedata mimetype="application/json">WorkersComp_TBI_VisitNote2.pdf_section1_baseline.json</filedata>
+  <iscustomizable>0</iscustomizable>
+  <name>WorkersComp_TBI_VisitNote2.pdf_section1_baseline.json</name>
+  <parentbotid>
+    <schemaname>copilots_header_f1288</schemaname>
+  </parentbotid>
+  <statecode>0</statecode>
+  <statuscode>1</statuscode>
+</botcomponent>

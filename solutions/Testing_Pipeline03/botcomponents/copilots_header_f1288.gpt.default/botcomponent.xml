@@ -1,0 +1,10 @@
+<botcomponent schemaname="copilots_header_f1288.gpt.default">
+  <componenttype>15</componenttype>
+  <iscustomizable>0</iscustomizable>
+  <name>Agent_testing03</name>
+  <parentbotid>
+    <schemaname>copilots_header_f1288</schemaname>
+  </parentbotid>
+  <statecode>0</statecode>
+  <statuscode>1</statuscode>
+</botcomponent>
