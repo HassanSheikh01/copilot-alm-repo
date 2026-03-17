@@ -23,7 +23,7 @@ on:
                 type: choice
                 options:
                     - Test Environment
-                    - Hassan
+                    - prod
                 default: "test"
             deploy_as_managed:
                 description: "Deploy as managed solution"
