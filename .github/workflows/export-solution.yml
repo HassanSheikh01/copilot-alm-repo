@@ -42,7 +42,7 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4pac org who
+              uses: actions/checkout@v4pac
               with:
                   fetch-depth: 0
             
