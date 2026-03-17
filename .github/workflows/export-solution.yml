@@ -72,12 +72,11 @@ jobs:
                       Write-Error "POWERPLATFORMTOOLS_PACPATH not set or file not found: '$pacExePath'"
                       exit 1
                   }
-
+                  
             - name: Verify PAC CLI is available
               shell: pwsh
               run: |
-                  $pacVersion = pac --version
-                  Write-Host "PAC CLI version: $pacVersion"
+                  pac help
                   if ($LASTEXITCODE -ne 0) {
                       Write-Error "pac CLI not accessible after PATH update"
                       exit 1
