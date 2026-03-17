@@ -171,8 +171,22 @@ jobs:
                   allow-no-subscriptions: true
 
             - name: Install Power Platform CLI
+              id: install
               uses: microsoft/powerplatform-actions/actions-install@v1
 
+            - name: Add PAC CLI to PATH
+              shell: pwsh
+              run: |
+                  $pacExePath = $env:POWERPLATFORMTOOLS_PACPATH
+                  if ($pacExePath -and (Test-Path $pacExePath)) {
+                      $pacDir = Split-Path $pacExePath -Parent
+                      Write-Host "Found pac.exe at: $pacExePath"
+                      echo "$pacDir" >> $env:GITHUB_PATH
+                  } else {
+                      Write-Error "POWERPLATFORMTOOLS_PACPATH not set or file not found: '$pacExePath'"
+                      exit 1
+                  }
+                  
             - name: Create PAC auth profile
               shell: pwsh
               run: |
