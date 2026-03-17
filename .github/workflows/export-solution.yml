@@ -63,32 +63,14 @@ jobs:
             - name: Add PAC CLI to PATH
               shell: pwsh
               run: |
-                  $pacPath = "${{ steps.install.outputs.pac-path }}"
-                  if ($pacPath -and (Test-Path $pacPath)) {
-                      Write-Host "Adding PAC path from action output: $pacPath"
-                      echo "$pacPath" >> $env:GITHUB_PATH
+                  $pacExePath = $env:POWERPLATFORMTOOLS_PACPATH
+                  if ($pacExePath -and (Test-Path $pacExePath)) {
+                      $pacDir = Split-Path $pacExePath -Parent
+                      Write-Host "Found pac.exe at: $pacExePath"
+                      echo "$pacDir" >> $env:GITHUB_PATH
                   } else {
-                      Write-Host "PAC path from action output not found, searching common locations..."
-                      $searchPaths = @(
-                          "$env:USERPROFILE\.dotnet\tools",
-                          "$env:LOCALAPPDATA\Microsoft\dotnet\tools",
-                          "C:\Users\runneradmin\.dotnet\tools",
-                          "$env:RUNNER_TOOL_CACHE"
-                      )
-                      $found = $null
-                      foreach ($searchPath in $searchPaths) {
-                          if (Test-Path $searchPath) {
-                              $found = Get-ChildItem -Path $searchPath -Filter "pac.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-                              if ($found) { break }
-                          }
-                      }
-                      if ($found) {
-                          Write-Host "Found pac.exe at: $($found.FullName)"
-                          echo "$($found.DirectoryName)" >> $env:GITHUB_PATH
-                      } else {
-                          Write-Error "pac CLI not found anywhere. Cannot continue."
-                          exit 1
-                      }
+                      Write-Error "POWERPLATFORMTOOLS_PACPATH not set or file not found: '$pacExePath'"
+                      exit 1
                   }
 
             - name: Verify PAC CLI is available
