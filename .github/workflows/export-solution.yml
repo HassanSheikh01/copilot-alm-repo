@@ -33,7 +33,7 @@ env:
 jobs:
     export-solution:
         runs-on: windows-latest
-        environment: dev # Uses federated credential for 'dev' environment
+        environment: Dev # Uses federated credential for 'dev' environment
 
         permissions:
             id-token: write # Required for federated credentials (OIDC)
