@@ -214,7 +214,7 @@ jobs:
                     "--force-overwrite",
                     "--publish-changes",
                     "--async",
-                    "--max-async-wait-time", "60",
+                    "--max-async-wait-time", "60"
                   )
 
                   if ("${{ steps.settings.outputs.has_settings }}" -eq "true") {
