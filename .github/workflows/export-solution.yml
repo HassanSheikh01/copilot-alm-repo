@@ -55,18 +55,44 @@ jobs:
                   allow-no-subscriptions: true
 
             - name: Install Power Platform CLI
+              id: install  
               uses: microsoft/powerplatform-actions/actions-install@v1
 
             # Explicitly add pac CLI to PATH
             - name: Add PAC CLI to PATH
+              shell: pwsh
               run: |
-                echo "${{ steps.install.outputs.pac-path }}" >> $GITHUB_PATH
+                $pacPath = "${{ steps.install.outputs.pac-path }}"
+                if ($pacPath) {
+                  echo "$pacPath" >> $env:GITHUB_PATH
+                  Write-Host "Added to PATH: $pacPath"
+                } else {
+                  # Fallback: find pac.exe anywhere in common install locations
+                  $found = Get-ChildItem -Path "C:\Users\runneradmin\.dotnet\tools", "$env:LOCALAPPDATA\Microsoft\dotnet\tools" -Filter "pac.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+                  if ($found) {
+                    echo $found.DirectoryName >> $env:GITHUB_PATH
+                    Write-Host "Found pac at: $($found.FullName)"
+                  } else {
+                    Write-Error "pac CLI not found"
+                    exit 1
+                  }
+                }
+
+            - name: Normalize environment URL
+              shell: pwsh
+              run: |
+                $url = "${{ inputs.environment_url }}"
+                if (-not $url.StartsWith("https://")) {
+                  $url = "https://$url"
+                }
+                echo "ENV_URL=$url" >> $env:GITHUB_ENV
 
             - name: Create PAC auth profile
               shell: pwsh
               run: |
-                  pac auth create --environment "${{ inputs.environment_url }}" --name "export-profile" --managedIdentity
+                pac auth create --environment "${{ env.ENV_URL }}" --name "export-profile" --managedIdentity
 
+                
             - name: Verify connection
               shell: pwsh
               run: |
