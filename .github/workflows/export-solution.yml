@@ -42,7 +42,7 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v4pac org who
               with:
                   fetch-depth: 0
             
@@ -56,9 +56,6 @@ jobs:
                   client-id: ${{ vars.AZURE_CLIENT_ID }}
                   tenant-id: ${{ vars.AZURE_TENANT_ID }}
                   allow-no-subscriptions: true
-
-            - name: Install Power Platform CLI
-              uses: microsoft/powerplatform-actions/actions-install@v1
 
             - name: Create PAC auth profile
               shell: pwsh
