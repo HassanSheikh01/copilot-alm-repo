@@ -121,11 +121,7 @@ jobs:
                   } else {
                       Write-Host "`n✅ All validations passed!" -ForegroundColor Green
                   }
-<<<<<<< Updated upstream
 
-=======
- 
->>>>>>> Stashed changes
             - name: Test solution pack
               shell: pwsh
               run: |
