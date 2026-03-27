@@ -24,6 +24,28 @@ jobs:
             - name: Install Power Platform CLI
               uses: microsoft/powerplatform-actions/actions-install@v1
 
+            - name: Add PAC CLI to PATH
+              shell: pwsh
+              run: |
+                  $pacExePath = $env:POWERPLATFORMTOOLS_PACPATH
+                  if ($pacExePath -and (Test-Path $pacExePath)) {
+                      $pacDir = Split-Path $pacExePath -Parent
+                      Write-Host "Found pac.exe at: $pacExePath"
+                      echo "$pacDir" >> $env:GITHUB_PATH
+                  } else {
+                      Write-Error "POWERPLATFORMTOOLS_PACPATH not set or file not found: '$pacExePath'"
+                      exit 1
+                  }
+                  
+            - name: Verify PAC CLI is available
+              shell: pwsh
+              run: |
+                  pac help
+                  if ($LASTEXITCODE -ne 0) {
+                      Write-Error "pac CLI not accessible after PATH update"
+                      exit 1
+                  }  
+
             - name: Detect changed solutions
               id: detect
               shell: pwsh
@@ -99,7 +121,11 @@ jobs:
                   } else {
                       Write-Host "`n✅ All validations passed!" -ForegroundColor Green
                   }
+<<<<<<< Updated upstream
 
+=======
+ 
+>>>>>>> Stashed changes
             - name: Test solution pack
               shell: pwsh
               run: |
